@@ -1,6 +1,6 @@
-# Eli Health - Test Strip Scanner Technical Test
+# Photon Decode – QR and Image Processing
 
-This project is a full-stack mobile application that allows users to capture photos of test strips, upload them to a backend service for processing, and view their submission history. The application is built with a React Native frontend and a Node.js backend, all containerized with Docker for a consistent development environment.
+A full-stack mobile and backend project that demonstrates how to capture, upload, and process images with QR code extraction and validation logic. The system includes a React Native app for image capture and a Node.js + PostgreSQL backend that performs preprocessing and decoding.
 
 ## Demo Video
 
@@ -41,8 +41,8 @@ Follow these steps to get the project running locally.
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/lindan4/eli-health-challenge.git
-cd eli-health-challenge
+git clone https://github.com/lindan4/PhotonDecode.git
+cd PhotonDecode
 ```
 
 ### 2. Backend Setup (Docker)
@@ -152,6 +152,6 @@ yarn test
 
 | Endpoint                  | Method | Description                                                                   | Response                                              |
 | ------------------------- | ------ | ----------------------------------------------------------------------------- | ----------------------------------------------------- |
-| `/api/test-strips/upload` | `POST` | Uploads a `multipart/form-data` image for processing.                         | `201 OK` with a JSON object of the submission result. |
-| `/api/test-strips`        | `GET`  | Retrieves a paginated list of all submissions. Supports `?page` and `?limit`. | `200 OK` with a paginated list of submission objects. |
-| `/api/test-strips/:id`    | `GET`  | Retrieves the detailed information for a single submission by its UUID.       | `200 OK` with a single submission object.             |
+| `/api/submissions/upload` | `POST` | Uploads a `multipart/form-data` image for processing.                         | `201 OK` with a JSON object of the submission result. |
+| `/api/submissions`        | `GET`  | Retrieves a paginated list of all submissions. Supports `?page` and `?limit`. | `200 OK` with a paginated list of submission objects. |
+| `/api/submissions/:id`    | `GET`  | Retrieves the detailed information for a single submission by its UUID.       | `200 OK` with a single submission object.             |

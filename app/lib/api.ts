@@ -2,7 +2,7 @@ import axios, { AxiosError } from "axios";
 import { SubmissionUploadResponse, PaginatedSubmissionsResponse } from "./types";
 import { BASE_URL } from "@/constants";
 
-
+// Use the unified base path
 const API_BASE_URL = `${BASE_URL}/api`;
 
 const client = axios.create({ baseURL: API_BASE_URL });
@@ -12,24 +12,24 @@ const client = axios.create({ baseURL: API_BASE_URL });
  * @param error The error object from Axios.
  */
 const handleError = (error: AxiosError) => {
-  // ✅ OFFLINE DETECTION: If there's no response object, it's a network error.
   if (!error.response) {
     console.error("Network Error:", error.message);
     throw new Error("Network error. Please check your connection and try again.");
   }
 
-  // Pass along the specific error message from the backend's JSON response
   const serverError = (error.response.data as { error?: string })?.error;
   if (serverError) {
     console.error("Server Error:", serverError);
     throw new Error(serverError);
   }
 
-  // Fallback for other types of errors
   console.error("API Error:", error.message);
   throw new Error("An unexpected error occurred. Please try again.");
 };
 
+/**
+ * Uploads an image file to the backend for text extraction.
+ */
 export const uploadImage = async (uri: string): Promise<SubmissionUploadResponse> => {
   const formData = new FormData();
   formData.append("image", {
@@ -39,20 +39,27 @@ export const uploadImage = async (uri: string): Promise<SubmissionUploadResponse
   } as any);
 
   try {
-    const { data } = await client.post("/test-strips/upload", formData, {
+    // ✅ Updated endpoint path
+    const { data } = await client.post("/submissions/upload", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
     return data;
   } catch (error) {
     handleError(error as AxiosError);
-    // This return is needed for TypeScript, but the line above will always throw.
     return Promise.reject(error);
   }
 };
 
-export const fetchSubmissions = async (page = 1, limit = 10): Promise<PaginatedSubmissionsResponse> => {
+/**
+ * Fetches a paginated list of uploaded submissions.
+ */
+export const fetchSubmissions = async (
+  page = 1,
+  limit = 10
+): Promise<PaginatedSubmissionsResponse> => {
   try {
-    const { data } = await client.get("/test-strips", { params: { page, limit } });
+    // ✅ Updated endpoint path
+    const { data } = await client.get("/submissions", { params: { page, limit } });
     return data;
   } catch (error) {
     handleError(error as AxiosError);

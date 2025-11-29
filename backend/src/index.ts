@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
-import testStripsRouter from './routes/testStrips.js'; // Assuming ES Modules
+import submissionsRouter from './routes/submissions.js'; // ✅ renamed for generalization
 import path from 'path';
 import multer from 'multer';
 
@@ -12,27 +12,44 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// ───────────────────────────────
+// 🗄️ Database Connection
+// ───────────────────────────────
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
+// Attach pool globally (optional helper if used in multiple files)
+app.locals.pool = pool;
 
-
-// This path is created by the volume mount in your docker-compose.yml
+// ───────────────────────────────
+// 📁 Static Files
+// ───────────────────────────────
+// This directory is mounted by Docker at runtime
 app.use('/uploads', express.static('/usr/src/app/uploads'));
 
+// ───────────────────────────────
+// 🩺 Health Check Endpoint
+// ───────────────────────────────
 app.get('/health', async (req, res) => {
   try {
     const result = await pool.query('SELECT NOW()');
     res.json({ status: 'ok', dbTime: result.rows[0].now });
   } catch (err) {
-    res.status(500).json({ error: 'DB connection failed' });
+    console.error('Health check failed:', err);
+    res.status(500).json({ error: 'Database connection failed' });
   }
 });
 
-app.use('/api/test-strips', testStripsRouter); // Standard practice to prefix with /api
+// ───────────────────────────────
+// 🧩 API Routes
+// ───────────────────────────────
+app.use('/api/submissions', submissionsRouter); // ✅ new route name
 
-// Multer error handler
+
+// ───────────────────────────────
+// 🧱 Multer Error Handling
+// ───────────────────────────────
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {
@@ -43,10 +60,13 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   next(err);
 });
 
+// ───────────────────────────────
+// 🚀 Server Startup
+// ───────────────────────────────
 if (process.env.NODE_ENV !== 'test') {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
-    console.log(`Backend running on port ${PORT}`);
+    console.log(`Photon Decode backend running on port ${PORT}`);
   });
 }
 

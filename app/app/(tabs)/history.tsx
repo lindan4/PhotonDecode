@@ -13,7 +13,7 @@ export default function HistoryScreen() {
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
 
-  const loadSubmissions = useCallback(async (pageNum: number, append: boolean = false) => {
+  const loadSubmissions = useCallback(async (pageNum: number, append: boolean = false) => { 
     if (pageNum === 1) {
       setRefreshing(true);
     } else {

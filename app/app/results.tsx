@@ -28,9 +28,9 @@ export default function ResultsScreen() {
       </View>
       
       <View style={styles.row}>
-        <Text style={styles.label}>QR Code:</Text>
+        <Text style={styles.label}>Extracted text:</Text>
         <Text style={styles.value}>
-          {params.qrCode || 'Not Found'}
+          {params.extractedText || 'Not Found'}
         </Text>
       </View>
       

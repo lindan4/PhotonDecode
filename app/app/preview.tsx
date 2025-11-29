@@ -18,40 +18,40 @@ export default function PreviewScreen() {
     setIsSubmitting(true);
     try {
       const serverResponse = await uploadImage(selectedImage);
+      // serverResponse matches your new SubmissionUploadResponse:
+      // { id, status, extractedText, extractionSuccess, quality, processedAt, thumbnailUrl?, message?, approach? }
 
-      console.log("Server response:", serverResponse);
-
-      // 2. Create submission object that matches your Submission interface
       const submission: Submission = {
         id: serverResponse.id,
-        status: serverResponse.status,
-        qrCode: serverResponse.qrCode,
-        quality: serverResponse.quality,
-        thumbnailUrl: serverResponse.thumbnailUrl || null,
+        status: serverResponse.status === "error" ? "failed" : serverResponse.status,
+        extractedText: serverResponse.extractedText ?? null,
+        extractionSuccess: serverResponse.extractionSuccess,
+        quality: serverResponse.quality ?? null,
+        thumbnailUrl: serverResponse.thumbnailUrl ?? null,
         createdAt: serverResponse.processedAt,
         localImageUri: selectedImage,
       };
 
-      // 3. Add to history
       addSubmission(submission);
 
-      // 4. Navigate to results with the submission data
       router.replace({
         pathname: "/results",
         params: {
           id: submission.id,
           status: submission.status,
-          qrCode: submission.qrCode || '', // Empty string instead of 'null'
-          quality: submission.quality || '',
-          qrCodeValid: String(serverResponse.qrCodeValid),
+          extractedText: submission.extractedText ?? "",
+          extractionSuccess: String(serverResponse.extractionSuccess),
+          quality: submission.quality ?? "",
           processedAt: submission.createdAt,
-          thumbnailUrl: serverResponse.thumbnailUrl || '', // Add this
+          thumbnailUrl: serverResponse.thumbnailUrl ?? "",
           localImageUri: selectedImage,
-        }
+          // Optional debug params if your Results screen wants them:
+          // approach: serverResponse.approach ?? "",
+          // message: serverResponse.message ?? "",
+        },
       });
     } catch (err) {
       console.error("Upload failed:", err);
-      
       const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
       Alert.alert("Upload Failed", errorMessage);
     } finally {
@@ -67,8 +67,7 @@ export default function PreviewScreen() {
   return (
     <View style={styles.container}>
       <Image source={{ uri: selectedImage }} style={styles.image} resizeMode="contain" />
-      
-      {/* The buttons are already correctly positioned */}
+
       {!isSubmitting && (
         <View style={styles.buttonContainer}>
           <Button title="Retake" onPress={handleClose} color="white" />
@@ -86,31 +85,23 @@ export default function PreviewScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: 'black'
-  },
-  image: {
-    flex: 1,
-    width: "100%"
-  },
+  container: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "black" },
+  image: { flex: 1, width: "100%" },
   buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center', // Center buttons vertically
-    width: '100%',
-    position: 'absolute',
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    width: "100%",
+    position: "absolute",
     bottom: 0,
     paddingTop: 20,
-    paddingBottom: 40, // Add more padding for the home indicator
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    paddingBottom: 40,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   loadingOverlay: {
-    ...StyleSheet.absoluteFillObject, // This makes it fill the entire screen
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Optional: dims the background
-  }
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
 });

@@ -10,7 +10,7 @@ services:
       - "3000:3000" # host:container
     environment:
       PORT: 3000
-      DATABASE_URL: postgres://eli_user:eli_password@postgres:5432/eli_test_strips
+      DATABASE_URL: postgres://photon_user:photon_password@postgres:5432/photon_decode
       NODE_ENV: development
     volumes:
       - ./backend:/usr/src/app/backend
@@ -21,9 +21,9 @@ services:
   postgres:
     image: postgres:15
     environment:
-      POSTGRES_DB: eli_test_strips
-      POSTGRES_USER: eli_user
-      POSTGRES_PASSWORD: eli_password
+      POSTGRES_DB: photon_decode
+      POSTGRES_USER: photon_user
+      POSTGRES_PASSWORD: photon_password
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./backend/db/init.sh:/docker-entrypoint-initdb.d/init.sh

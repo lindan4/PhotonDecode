@@ -3,15 +3,15 @@ set -e
 
 # Create the test database
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
-    CREATE DATABASE eli_test_strips_test;
+    CREATE DATABASE photon_decode_test;
 EOSQL
 
-# Apply the schema to the main database
+# ---- Schema for main database ----
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
-    CREATE TABLE test_strip_submissions (
+    CREATE TABLE image_submissions (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        qr_code VARCHAR(100),
-        qr_code_valid BOOLEAN,
+        extracted_text VARCHAR(255),
+        extraction_success BOOLEAN,
         quality VARCHAR(50),
         original_image_path TEXT NOT NULL,
         thumbnail_path TEXT,
@@ -22,16 +22,16 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
         created_at TIMESTAMP DEFAULT NOW()
     );
 
-    CREATE INDEX idx_qr_code ON test_strip_submissions(qr_code);
-    CREATE INDEX idx_created_at ON test_strip_submissions(created_at DESC);
+    CREATE INDEX idx_extracted_text ON image_submissions(extracted_text);
+    CREATE INDEX idx_created_at ON image_submissions(created_at DESC);
 EOSQL
 
-# Apply the same schema to the test database
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "eli_test_strips_test" <<-EOSQL
-    CREATE TABLE test_strip_submissions (
+# ---- Schema for test database ----
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "photon_decode_test" <<-EOSQL
+    CREATE TABLE image_submissions (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        qr_code VARCHAR(100),
-        qr_code_valid BOOLEAN,
+        extracted_text VARCHAR(255),
+        extraction_success BOOLEAN,
         quality VARCHAR(50),
         original_image_path TEXT NOT NULL,
         thumbnail_path TEXT,
@@ -42,6 +42,6 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "eli_test_strips_te
         created_at TIMESTAMP DEFAULT NOW()
     );
 
-    CREATE INDEX idx_qr_code ON test_strip_submissions(qr_code);
-    CREATE INDEX idx_created_at ON test_strip_submissions(created_at DESC);
+    CREATE INDEX idx_extracted_text ON image_submissions(extracted_text);
+    CREATE INDEX idx_created_at ON image_submissions(created_at DESC);
 EOSQL

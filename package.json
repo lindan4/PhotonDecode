@@ -1,8 +1,8 @@
 {
-  "name": "eli-health-challenge",
+  "name": "photon-decode",
   "private": true,
   "version": "1.0.0",
-  "description": "Eli Health coding challenge monorepo",
+  "description": "A configurable image decoding pipeline for QR and barcode recognition with preprocessing strategies.",
   "workspaces": [
     "backend",
     "app"
@@ -14,15 +14,17 @@
     "dev:app:ios": "yarn workspace app ios",
     "dev:app:android": "yarn workspace app android",
     "dev": "yarn dev:backend & yarn dev:app",
-    "test": "yarn workspaces run test"
+    "test": "yarn workspaces run test",
+    "lint": "yarn workspaces run lint",
+    "format": "yarn workspaces run format"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lindan4/eli-health-challenge.git"
+    "url": "git+https://github.com/lindan4/PhotonDecode.git"
   },
   "bugs": {
-    "url": "https://github.com/lindan4/eli-health-challenge/issues"
+    "url": "https://github.com/lindan4/PhotonDecode/issues"
   },
-  "homepage": "https://github.com/lindan4/eli-health-challenge#readme",
-  "license": "ISC"
+  "homepage": "https://github.com/lindan4/PhotonDecode#readme",
+  "license": "MIT"
 }

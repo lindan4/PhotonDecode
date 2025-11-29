@@ -4,8 +4,7 @@ import path from 'path';
 import { Pool } from 'pg';
 import fs from 'fs/promises';
 
-
-// Load environment variables from .env.test
+// Load .env.test
 dotenv.config({ path: path.resolve(__dirname, '../../.env.test') });
 
 beforeAll(async () => {
@@ -16,7 +15,7 @@ beforeAll(async () => {
     const schema = await fs.readFile(path.join(__dirname, '../../db/schema.sql'), 'utf-8');
     
     // Drop the table if it exists to ensure a clean state
-    await pool.query('DROP TABLE IF EXISTS test_strip_submissions;');
+    await pool.query('DROP TABLE IF EXISTS image_submissions;');
     
     // Apply the schema
     await pool.query(schema);

@@ -1,14 +1,17 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { Alert } from 'react-native';
+import { useRouter } from 'expo-router';
+import { uploadImage } from '@/lib/api';
 import CameraScreen from '../(tabs)/index';
 import PreviewScreen from '../preview';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { uploadImage } from '@/lib/api';
+import { useAppContext } from '../../context/AppContext';
 
-// Mock dependencies
+// ──────────────────────────────────────────────
+// 🧩 Mock dependencies
+// ──────────────────────────────────────────────
 jest.mock('expo-router', () => ({
   useRouter: jest.fn(),
-  useLocalSearchParams: jest.fn(),
 }));
 
 jest.mock('../../context/AppContext', () => ({
@@ -19,10 +22,7 @@ jest.mock('../../components/CameraView', () => ({
   CameraView: ({ onCapture }: any) => {
     const { Pressable, Text } = require('react-native');
     return (
-      <Pressable 
-        testID="mock-camera-capture"
-        onPress={() => onCapture('file://mock-image.jpg')}
-      >
+      <Pressable testID="mock-camera-capture" onPress={() => onCapture('file://mock-image.jpg')}>
         <Text>Capture Photo</Text>
       </Pressable>
     );
@@ -33,9 +33,10 @@ jest.mock('../../lib/api', () => ({
   uploadImage: jest.fn(),
 }));
 
-import { useAppContext } from '../../context/AppContext';
-
-describe('Camera to Preview Flow', () => {
+// ──────────────────────────────────────────────
+// 🧪 Test Suite: Camera → Preview → Results Flow
+// ──────────────────────────────────────────────
+describe('Camera to Preview Flow (Photon Decode)', () => {
   const mockSetSelectedImage = jest.fn();
   const mockAddSubmission = jest.fn();
   const mockPush = jest.fn();
@@ -44,13 +45,13 @@ describe('Camera to Preview Flow', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     (useAppContext as jest.Mock).mockReturnValue({
       setSelectedImage: mockSetSelectedImage,
       selectedImage: 'file://mock-image.jpg',
       addSubmission: mockAddSubmission,
     });
-    
+
     (useRouter as jest.Mock).mockReturnValue({
       push: mockPush,
       replace: mockReplace,
@@ -58,94 +59,91 @@ describe('Camera to Preview Flow', () => {
     });
   });
 
-  it('should capture image and navigate to preview screen', async () => {
+  // ──────────────────────────────────────────────
+  it('captures image and navigates to preview screen', async () => {
     const { getByTestId } = render(<CameraScreen />);
-    
-    const captureButton = getByTestId('mock-camera-capture');
-    fireEvent.press(captureButton);
-    
+
+    fireEvent.press(getByTestId('mock-camera-capture'));
+
     await waitFor(() => {
       expect(mockSetSelectedImage).toHaveBeenCalledWith('file://mock-image.jpg');
       expect(mockPush).toHaveBeenCalledWith('/preview');
     });
   });
 
-  it('should allow user to cancel from preview and go back', async () => {
+  // ──────────────────────────────────────────────
+  it('allows user to cancel and go back from preview', async () => {
     const { getByText } = render(<PreviewScreen />);
-    
-    const retakeButton = getByText('Retake');
-    fireEvent.press(retakeButton);
-    
+
+    fireEvent.press(getByText('Retake'));
+
     await waitFor(() => {
       expect(mockSetSelectedImage).toHaveBeenCalledWith(null);
       expect(mockBack).toHaveBeenCalled();
     });
   });
 
-  it('should submit image and navigate to results on success', async () => {
+  // ──────────────────────────────────────────────
+  it('submits image successfully and navigates to results', async () => {
     const mockResponse = {
       id: 'test-id-123',
       status: 'processed',
-      qrCode: 'ELI-2025-001',
+      extractedText: 'PHOTON-2025-001',
+      extractionSuccess: true,
       quality: 'good',
-      qrCodeValid: true,
       thumbnailUrl: 'thumb-123.png',
       processedAt: '2025-01-30T12:00:00Z',
+      approach: 'original_rgba',
+      message: 'Image processed successfully',
     };
 
     (uploadImage as jest.Mock).mockResolvedValue(mockResponse);
 
     const { getByText } = render(<PreviewScreen />);
-    
-    const submitButton = getByText('Submit');
-    fireEvent.press(submitButton);
-    
+    fireEvent.press(getByText('Submit'));
+
     await waitFor(() => {
-      // Verify upload was called with correct image
+      // API call
       expect(uploadImage).toHaveBeenCalledWith('file://mock-image.jpg');
-      
-      // Verify submission was added to context
+
+      // Stored submission
       expect(mockAddSubmission).toHaveBeenCalledWith(
         expect.objectContaining({
           id: 'test-id-123',
           status: 'processed',
-          qrCode: 'ELI-2025-001',
-          quality: 'good',
+          extractedText: 'PHOTON-2025-001',
         })
       );
-      
-      // Verify navigation to results with correct params
-      expect(mockReplace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          pathname: '/results',
-          params: expect.objectContaining({
-            id: 'test-id-123',
-            status: 'processed',
-            qrCode: 'ELI-2025-001',
-          }),
-        })
-      );
+
+      // Navigation to results
+      expect(mockReplace).toHaveBeenCalledWith({
+        pathname: '/results',
+        params: {
+          extractedText: "PHOTON-2025-001",
+          extractionSuccess: "true",
+          processedAt: "2025-01-30T12:00:00Z",
+          quality: "good",
+          status: "processed",
+          id: "test-id-123",
+          thumbnailUrl: "thumb-123.png",
+          localImageUri: "file://mock-image.jpg",
+        },
+      });
     });
   });
 
-  it('should show error alert when upload fails', async () => {
-    const mockAlert = jest.spyOn(require('react-native').Alert, 'alert');
-    
-    // Arrange: Mock the API to reject with a specific error message
+  // ──────────────────────────────────────────────
+  it('shows error alert if upload fails', async () => {
+    const mockAlert = jest.spyOn(Alert, 'alert');
     const networkErrorMessage = 'Network error. Please check your connection and try again.';
+
     (uploadImage as jest.Mock).mockRejectedValue(new Error(networkErrorMessage));
 
     const { getByText } = render(<PreviewScreen />);
-    
-    const submitButton = getByText('Submit');
-    fireEvent.press(submitButton);
-    
-    // Assert
+    fireEvent.press(getByText('Submit'));
+
     await waitFor(() => {
-      expect(mockAlert).toHaveBeenCalledWith(
-        'Upload Failed',
-        networkErrorMessage 
-      );
+      expect(mockAlert).toHaveBeenCalledWith('Upload Failed', networkErrorMessage);
     });
   });
 });

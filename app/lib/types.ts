@@ -1,26 +1,30 @@
 // The single source of truth for a submission's structure in the mobile app.
 export interface Submission {
   id: string;
-  qrCode: string | null;
-  status: "pending" | "processed" | "expired" | "error";
+  extractedText: string | null;
+  extractionSuccess: boolean;
   quality: "good" | "fair" | "poor" | null;
   thumbnailUrl: string | null;
+  status: "pending" | "processed" | "failed";
   createdAt: string;
 
-  localImageUri?: string; // The URI of the image stored on the device
+  localImageUri?: string;
 }
 
-// ... other types from previous suggestion remain the same
+// Response from the backend when an image is uploaded
 export interface SubmissionUploadResponse {
   id: string;
-  status: "processed" | "expired" | "error";
-  qrCode: string | null;
-  qrCodeValid: boolean;
-  quality: "good" | "fair" | "poor";
+  status: "processed" | "error";
+  extractedText: string | null;
+  extractionSuccess: boolean;
+  quality: "good" | "fair" | "poor" | null;
   processedAt: string;
-  thumbnailUrl: string;
+  thumbnailUrl?: string;
+  message?: string;
+  approach?: string; // optional: which preprocessing strategy succeeded
 }
 
+// Paginated response for the submissions list
 export interface PaginatedSubmissionsResponse {
   page: number;
   limit: number;
